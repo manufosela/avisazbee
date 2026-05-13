@@ -1,16 +1,17 @@
 package com.manufosela.avisazbee
 
 import android.app.Application
+import com.manufosela.avisazbee.infrastructure.lifecycle.ActivityHolder
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-/**
- * Application entry point. Hilt generates the application component here.
- *
- * Phase 0 keeps this minimal. Subsequent phases will:
- *   - initialise Firebase explicitly (currently it auto-inits via the
- *     `google-services.json` content provider),
- *   - register the FCM service,
- *   - schedule the device pulse-of-life work.
- */
 @HiltAndroidApp
-class AvisazbeeApplication : Application()
+class AvisazbeeApplication : Application() {
+
+    @Inject lateinit var activityHolder: ActivityHolder
+
+    override fun onCreate() {
+        super.onCreate()
+        registerActivityLifecycleCallbacks(activityHolder)
+    }
+}
