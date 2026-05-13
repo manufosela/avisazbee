@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -57,6 +58,7 @@ import java.util.Locale
 @Composable
 fun ChannelDetailScreen(
     onBack: () -> Unit,
+    onManageButtons: () -> Unit = {},
     viewModel: ChannelDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -79,6 +81,14 @@ fun ChannelDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onManageButtons) {
+                        Icon(
+                            imageVector = Icons.Filled.SettingsRemote,
+                            contentDescription = "Gestionar botones",
                         )
                     }
                 },

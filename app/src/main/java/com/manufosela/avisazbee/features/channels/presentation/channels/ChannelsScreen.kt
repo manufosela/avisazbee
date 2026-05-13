@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,15 +32,27 @@ import com.manufosela.avisazbee.features.channels.domain.Channel
 @Composable
 fun ChannelsScreen(
     onOpenChannel: (String) -> Unit = {},
+    onCreateChannel: () -> Unit = {},
+    onJoinChannel: () -> Unit = {},
     viewModel: ChannelsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Mis canales") })
+            TopAppBar(
+                title = { Text(text = "Mis canales") },
+                actions = {
+                    androidx.compose.material3.IconButton(onClick = onJoinChannel) {
+                        Icon(
+                            imageVector = Icons.Filled.GroupAdd,
+                            contentDescription = "Unirse con código",
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* Phase 3c: navigate to CreateChannel */ }) {
+            FloatingActionButton(onClick = onCreateChannel) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Crear canal")
             }
         },
