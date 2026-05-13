@@ -3,6 +3,7 @@ package com.manufosela.avisazbee.features.channels.presentation.channels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.manufosela.avisazbee.features.auth.domain.AppUser
+import com.manufosela.avisazbee.features.auth.domain.SignOutUseCase
 import com.manufosela.avisazbee.features.auth.domain.WatchAuthStateUseCase
 import com.manufosela.avisazbee.features.channels.domain.Channel
 import com.manufosela.avisazbee.features.channels.domain.WatchUserChannelsUseCase
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 sealed interface ChannelsUiState {
@@ -26,6 +28,7 @@ sealed interface ChannelsUiState {
 class ChannelsViewModel @Inject constructor(
     watchAuthState: WatchAuthStateUseCase,
     watchUserChannels: WatchUserChannelsUseCase,
+    private val signOut: SignOutUseCase,
 ) : ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,4 +45,8 @@ class ChannelsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
             initialValue = ChannelsUiState.Loading,
         )
+
+    fun signOut() {
+        viewModelScope.launch { signOut.invoke() }
+    }
 }

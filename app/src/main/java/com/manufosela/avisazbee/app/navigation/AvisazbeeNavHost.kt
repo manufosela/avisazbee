@@ -1,9 +1,14 @@
 package com.manufosela.avisazbee.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.manufosela.avisazbee.app.splash.SplashScreen
@@ -19,8 +24,20 @@ import com.manufosela.avisazbee.features.channels.presentation.join.JoinChannelS
 import com.manufosela.avisazbee.features.users.presentation.NotificationPreferencesScreen
 
 @Composable
-fun AvisazbeeNavHost() {
+fun AvisazbeeNavHost(authGate: AuthGateViewModel = hiltViewModel()) {
     val navController = rememberNavController()
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val session by authGate.session.collectAsStateWithLifecycle()
+    LaunchedEffect(session, currentEntry?.destination?.route) {
+        if (session == AuthSession.SignedOut) {
+            val current = currentEntry?.destination?.route
+            if (current != null && current != Routes.SIGN_IN && current != Routes.SPLASH) {
+                navController.navigate(Routes.SIGN_IN) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
         composable(Routes.SPLASH) {
             SplashScreen(

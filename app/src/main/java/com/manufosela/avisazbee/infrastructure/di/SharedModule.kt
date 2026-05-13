@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.time.Clock
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -23,6 +24,10 @@ object SharedModule {
     @Named(SECRET_GENERATOR)
     fun provideSecretGenerator(): RandomTokenGenerator =
         RandomTokenGenerator.secret()
+
+    @Provides
+    @Singleton
+    fun provideClock(): Clock = Clock.systemUTC()
 
     const val INVITE_CODE_GENERATOR = "inviteCodeGenerator"
     const val SECRET_GENERATOR = "secretGenerator"
