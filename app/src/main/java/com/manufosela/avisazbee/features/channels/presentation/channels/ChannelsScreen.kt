@@ -30,6 +30,7 @@ import com.manufosela.avisazbee.features.channels.domain.Channel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChannelsScreen(
+    onOpenChannel: (String) -> Unit = {},
     viewModel: ChannelsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -59,6 +60,7 @@ fun ChannelsScreen(
             } else {
                 ChannelsList(
                     channels = current.channels,
+                    onChannelClick = onOpenChannel,
                     modifier = Modifier.padding(innerPadding),
                 )
             }
@@ -67,7 +69,11 @@ fun ChannelsScreen(
 }
 
 @Composable
-private fun ChannelsList(channels: List<Channel>, modifier: Modifier = Modifier) {
+private fun ChannelsList(
+    channels: List<Channel>,
+    onChannelClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -75,13 +81,18 @@ private fun ChannelsList(channels: List<Channel>, modifier: Modifier = Modifier)
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp),
     ) {
-        items(channels, key = { it.id }) { channel -> ChannelCard(channel) }
+        items(channels, key = { it.id }) { channel ->
+            ChannelCard(channel = channel, onClick = { onChannelClick(channel.id) })
+        }
     }
 }
 
 @Composable
-private fun ChannelCard(channel: Channel) {
-    Card(modifier = Modifier.fillMaxSize()) {
+private fun ChannelCard(channel: Channel, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxSize(),
+        onClick = onClick,
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = channel.name, style = MaterialTheme.typography.titleMedium)
             Text(
