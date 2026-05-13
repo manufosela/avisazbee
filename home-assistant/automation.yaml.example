@@ -1,0 +1,59 @@
+# avisazbee — Home Assistant automation example
+#
+# Copia estos snippets en tu configuration.yaml (o automations.yaml /
+# rest_commands.yaml según tu split) y sustituye:
+#
+#   YOUR_PROJECT_REGION    europe-west1 si has desplegado en Europa
+#   YOUR_PROJECT_ID        id del proyecto Firebase (lo ves en la consola)
+#   E4:56:AC:FF:FE:5E:CD:AA   IEEE MAC del botón Sonoff SNZB-01P registrado
+#                              en la app (Botones del canal → Nuevo botón)
+#   AVISAZBEE_BUTTON_KITCHEN  cualquier nombre de input/secret para guardar
+#                              el plain secret que la app te muestra al
+#                              dar de alta el botón. Idealmente en
+#                              secrets.yaml para que no acabe en logs.
+#
+# La función rechaza cualquier método distinto de POST y cualquier
+# secret incorrecto con 403, así que un fallo de configuración aquí no
+# crea alerts falsas.
+
+rest_command:
+  avisazbee_kitchen_short_press:
+    url: "https://YOUR_PROJECT_REGION-YOUR_PROJECT_ID.cloudfunctions.net/createAlertFromHomeAssistant"
+    method: POST
+    content_type: "application/json"
+    payload: >
+      {
+        "buttonId": "E4:56:AC:FF:FE:5E:CD:AA",
+        "secret":   "!secret AVISAZBEE_BUTTON_KITCHEN",
+        "alertType": "short_press",
+        "message":  "Pulsación corta en cocina"
+      }
+
+automation:
+  - alias: "avisazbee — botón cocina (short press)"
+    description: >
+      Cuando el SNZB-01P de la cocina hace una pulsación corta, dispara la
+      alerta en avisazbee. La integración ZHA emite el evento zha_event
+      con command "on" para la pulsación corta del SNZB-01P; ajusta el
+      command si tu botón devuelve otra cosa.
+    trigger:
+      - platform: event
+        event_type: zha_event
+        event_data:
+          device_ieee: "e4:56:ac:ff:fe:5e:cd:aa"
+          command: "on"
+    action:
+      - service: rest_command.avisazbee_kitchen_short_press
+
+  - alias: "avisazbee — botón cocina (long press)"
+    trigger:
+      - platform: event
+        event_type: zha_event
+        event_data:
+          device_ieee: "e4:56:ac:ff:fe:5e:cd:aa"
+          command: "off"
+    action:
+      - service: rest_command.avisazbee_kitchen_short_press
+        data:
+          # Si quieres distinguir long-press, registra otro rest_command
+          # con alertType "long_press" y úsalo aquí.
