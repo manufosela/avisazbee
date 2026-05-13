@@ -137,7 +137,7 @@ describe("createAlertFromHomeAssistant", () => {
     expect(res.body).toEqual({ error: "forbidden" });
   });
 
-  it("writes the alert and multicasts to enabled devices", async () => {
+  it("writes the alert, multicasts to enabled devices and schedules a repush", async () => {
     const buttonDoc = {
       get: async () => fakeDoc({
         enabled: true,
@@ -194,10 +194,12 @@ describe("createAlertFromHomeAssistant", () => {
       },
     };
     const sendEachForMulticast = vi.fn(async ({ tokens }) => ({ successCount: tokens.length }));
+    const schedule = vi.fn();
     const handler = createHandler({
       db,
       messaging: { sendEachForMulticast },
       bcryptCompare: async () => true,
+      scheduler: { schedule },
     });
     const res = fakeRes();
     await handler({
@@ -224,5 +226,6 @@ describe("createAlertFromHomeAssistant", () => {
     const call = sendEachForMulticast.mock.calls[0][0];
     expect(new Set(call.tokens)).toEqual(new Set(["t-1", "t-2"]));
     expect(call.data.channelName).toBe("Casa Manu");
+    expect(schedule).toHaveBeenCalledWith("alert-1", 30);
   });
 });

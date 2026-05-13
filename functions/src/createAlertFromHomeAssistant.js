@@ -5,7 +5,13 @@ import { normaliseIeee } from "./ieee.js";
  * Builds the HTTPS handler. Dependencies are injected so tests can replace
  * Firestore, FCM and bcrypt with in-memory fakes.
  */
-export function createHandler({ db, messaging, bcryptCompare = bcrypt.compare, logger = console }) {
+export function createHandler({
+  db,
+  messaging,
+  bcryptCompare = bcrypt.compare,
+  scheduler = null,
+  logger = console,
+}) {
   return async function handler(req, res) {
     if (req.method !== "POST") {
       res.status(405).json({ error: "method_not_allowed" });
@@ -64,11 +70,6 @@ export function createHandler({ db, messaging, bcryptCompare = bcrypt.compare, l
     await alertRef.set(alertDoc);
 
     const tokens = await collectFcmTokens(db, channelId);
-    if (tokens.length === 0) {
-      res.status(200).json({ alertId: alertRef.id, delivered: 0 });
-      return;
-    }
-
     const dataPayload = {
       alertId: alertRef.id,
       channelId,
@@ -76,7 +77,15 @@ export function createHandler({ db, messaging, bcryptCompare = bcrypt.compare, l
       title: alertDoc.title,
       message: alertDoc.message,
     };
-    const delivered = await sendMulticast({ messaging, tokens, dataPayload, logger });
+    let delivered = 0;
+    if (tokens.length > 0) {
+      delivered = await sendMulticast({ messaging, tokens, dataPayload, logger });
+    }
+
+    if (scheduler) {
+      await scheduler.schedule(alertRef.id, alertDoc.repeatIntervalSeconds);
+    }
+
     res.status(200).json({ alertId: alertRef.id, delivered });
   };
 }
