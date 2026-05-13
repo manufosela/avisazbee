@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -59,6 +61,8 @@ import java.util.Locale
 fun ChannelDetailScreen(
     onBack: () -> Unit,
     onManageButtons: () -> Unit = {},
+    onOpenEscalation: () -> Unit = {},
+    onOpenDialers: () -> Unit = {},
     viewModel: ChannelDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -89,6 +93,18 @@ fun ChannelDetailScreen(
                         Icon(
                             imageVector = Icons.Filled.SettingsRemote,
                             contentDescription = "Gestionar botones",
+                        )
+                    }
+                    IconButton(onClick = onOpenEscalation) {
+                        Icon(
+                            imageVector = Icons.Filled.Call,
+                            contentDescription = "Escalada de llamadas",
+                        )
+                    }
+                    IconButton(onClick = onOpenDialers) {
+                        Icon(
+                            imageVector = Icons.Filled.PhoneAndroid,
+                            contentDescription = "Dispositivos dialer",
                         )
                     }
                 },

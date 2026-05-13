@@ -13,7 +13,10 @@ import com.manufosela.avisazbee.features.buttons.presentation.list.ButtonsScreen
 import com.manufosela.avisazbee.features.channels.presentation.channels.ChannelsScreen
 import com.manufosela.avisazbee.features.channels.presentation.create.CreateChannelScreen
 import com.manufosela.avisazbee.features.channels.presentation.detail.ChannelDetailScreen
+import com.manufosela.avisazbee.features.channels.presentation.dialers.DialersScreen
+import com.manufosela.avisazbee.features.channels.presentation.escalation.EscalationPolicyScreen
 import com.manufosela.avisazbee.features.channels.presentation.join.JoinChannelScreen
+import com.manufosela.avisazbee.features.users.presentation.NotificationPreferencesScreen
 
 @Composable
 fun AvisazbeeNavHost() {
@@ -49,7 +52,11 @@ fun AvisazbeeNavHost() {
                 },
                 onCreateChannel = { navController.navigate(Routes.CREATE_CHANNEL) },
                 onJoinChannel = { navController.navigate(Routes.JOIN_CHANNEL) },
+                onOpenPreferences = { navController.navigate(Routes.NOTIFICATION_PREFERENCES) },
             )
+        }
+        composable(Routes.NOTIFICATION_PREFERENCES) {
+            NotificationPreferencesScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.CREATE_CHANNEL) {
             CreateChannelScreen(
@@ -80,10 +87,22 @@ fun AvisazbeeNavHost() {
                 .orEmpty()
             ChannelDetailScreen(
                 onBack = { navController.popBackStack() },
-                onManageButtons = {
-                    navController.navigate(Routes.buttons(channelId))
-                },
+                onManageButtons = { navController.navigate(Routes.buttons(channelId)) },
+                onOpenEscalation = { navController.navigate(Routes.escalation(channelId)) },
+                onOpenDialers = { navController.navigate(Routes.dialers(channelId)) },
             )
+        }
+        composable(
+            route = Routes.ESCALATION_PATTERN,
+            arguments = listOf(navArgument(Routes.ARG_CHANNEL_ID) { type = NavType.StringType }),
+        ) {
+            EscalationPolicyScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.DIALERS_PATTERN,
+            arguments = listOf(navArgument(Routes.ARG_CHANNEL_ID) { type = NavType.StringType }),
+        ) {
+            DialersScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.BUTTONS_PATTERN,
