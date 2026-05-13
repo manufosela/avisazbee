@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------- helpers --------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isMember(channelId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/channels/$(channelId)/members/$(uid()));
+    }
+
+    function memberRole(channelId) {
+      return get(/databases/$(database)/documents/channels/$(channelId)/members/$(uid())).data.role;
+    }
+
+    function isOwnerOrAdmin(channelId) {
+      return isMember(channelId) && memberRole(channelId) in ['owner', 'admin'];
+    }
+
+    function isOwnerOf(channelId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/channels/$(channelId)).data.ownerUid == uid();
+    }
+
+    // -------- /users/{uid} --------
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && uid() == userId;
+
+      match /preferences/{name} {
+        allow read, write: if isSignedIn() && uid() == userId;
+      }
+    }
+
+    // -------- /channels/{channelId} --------
+    match /channels/{channelId} {
+      allow read: if isMember(channelId) || (isSignedIn() && resource.data.ownerUid == uid());
+
+      // Crear canal: solo el propio usuario marcándose ownerUid.
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.inviteEnabled == true;
+
+      // Actualizar metadatos del canal: solo el owner.
+      allow update: if isSignedIn() && resource.data.ownerUid == uid();
+
+      // Borrado: solo el owner.
+      allow delete: if isSignedIn() && resource.data.ownerUid == uid();
+
+      // members/{memberUid}
+      match /members/{memberUid} {
+        allow read: if isMember(channelId);
+
+        // Auto-alta del owner al crear el canal (mismo batch que crea
+        // el doc principal: aquí permitimos que el usuario añada su
+        // propio doc miembro como owner si todavía no existe).
+        allow create: if isSignedIn() && (
+          (memberUid == uid() && request.resource.data.role == 'owner')
+          || (memberUid == uid() && request.resource.data.role == 'receiver')
+          || isOwnerOrAdmin(channelId)
+        );
+
+        // Cambiar role: solo owner (ningún admin promueve a otros).
+        // El propio miembro puede actualizar notificationsEnabled.
+        allow update: if isSignedIn() && (
+          (memberUid == uid()
+            && request.resource.data.role == resource.data.role)
+          || isOwnerOf(channelId)
+        );
+
+        // Quitar receivers: owner o admin. Owners no se borran a sí mismos.
+        allow delete: if isSignedIn() && (
+          isOwnerOrAdmin(channelId)
+            && resource.data.role != 'owner'
+        );
+      }
+
+      // dialers/{deviceId}
+      match /dialers/{deviceId} {
+        allow read: if isMember(channelId);
+        allow create, update, delete: if isOwnerOrAdmin(channelId);
+      }
+
+      // config/{name} (escalation)
+      match /config/{name} {
+        allow read: if isMember(channelId);
+        allow write: if isOwnerOrAdmin(channelId);
+      }
+    }
+
+    // -------- /buttons/{ieee} --------
+    match /buttons/{buttonId} {
+      // Lectura para cualquier miembro del canal al que apunta el botón.
+      allow read: if isSignedIn() && isMember(resource.data.channelId);
+
+      // Crear botón en un canal: caller debe ser owner/admin del canal
+      // que se está poniendo en request.resource.data.channelId.
+      allow create: if isSignedIn() && isOwnerOrAdmin(request.resource.data.channelId);
+
+      // Update: owner/admin del canal del botón. No permitido cambiar channelId.
+      allow update: if isSignedIn()
+        && isOwnerOrAdmin(resource.data.channelId)
+        && request.resource.data.channelId == resource.data.channelId;
+
+      // Delete: owner/admin del canal del botón.
+      allow delete: if isSignedIn() && isOwnerOrAdmin(resource.data.channelId);
+    }
+
+    // -------- /devices/{deviceId} --------
+    match /devices/{deviceId} {
+      // Lectura/escritura solo del owner del dispositivo.
+      allow read, write: if isSignedIn()
+        && (request.resource.data.ownerUid == uid()
+            || resource.data.ownerUid == uid());
+    }
+
+    // -------- /alerts/{alertId} --------
+    match /alerts/{alertId} {
+      // Lectura para miembros del canal.
+      allow read: if isSignedIn() && isMember(resource.data.channelId);
+
+      // Crear alertas: reservado a Admin SDK (Cloud Function HTTP de HA).
+      allow create: if false;
+
+      // Update: miembros del canal pueden mutar status a claimed/resolved.
+      // Las transiciones (pending→claimed, pending|claimed→resolved) las
+      // garantiza la transacción Firestore del cliente; las reglas solo
+      // validan que el caller sea miembro y que los campos resoldidos
+      // mantengan invariantes (channelId, buttonId no cambian).
+      allow update: if isSignedIn()
+        && isMember(resource.data.channelId)
+        && request.resource.data.channelId == resource.data.channelId
+        && request.resource.data.buttonId == resource.data.buttonId
+        && (
+          // claim
+          (request.resource.data.status == 'claimed'
+            && request.resource.data.claimedBy == uid())
+          // resolve
+          || (request.resource.data.status == 'resolved'
+            && request.resource.data.resolvedBy == uid()
+            && request.resource.data.resolution is string
+            && request.resource.data.resolution.size() > 0)
+        );
+
+      // Delete: nadie desde cliente.
+      allow delete: if false;
+    }
+  }
+}
