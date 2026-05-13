@@ -6,6 +6,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.manufosela.avisazbee.features.users.domain.NotificationMode
 import com.manufosela.avisazbee.features.users.domain.UserPreferencesRepository
 import com.manufosela.avisazbee.infrastructure.device.DeviceRegistrar
+import com.manufosela.avisazbee.infrastructure.escalation.EscalationCoordinator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ class AvisazbeeMessagingService : FirebaseMessagingService() {
     @Inject lateinit var auth: FirebaseAuth
     @Inject lateinit var deviceRegistrar: DeviceRegistrar
     @Inject lateinit var userPreferences: UserPreferencesRepository
+    @Inject lateinit var escalation: EscalationCoordinator
 
     private val job: Job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -55,6 +57,14 @@ class AvisazbeeMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data
         val alertId = data["alertId"] ?: return
+        val channelId = data["channelId"]
+        val kind = data["kind"]
+        // alertLifecycle envía data {alertId, channelId, kind, actor}.
+        // En ese caso solo nos interesa cancelar la escalada local.
+        if (kind == "claim" || kind == "resolve") {
+            escalation.cancel(alertId)
+            return
+        }
         val channelName = data["channelName"] ?: "avisazbee"
         val title = data["title"] ?: "Aviso"
         val body = data["message"] ?: ""
@@ -69,6 +79,9 @@ class AvisazbeeMessagingService : FirebaseMessagingService() {
                 message = body,
                 mode = mode,
             )
+            if (channelId != null) {
+                runCatching { escalation.schedule(alertId, channelId) }
+            }
         }
     }
 }
