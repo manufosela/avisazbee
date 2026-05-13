@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Do not auto-backup any local state; the user signs in again on a
+         fresh install and the server is the source of truth. -->
+    <exclude domain="root" path="." />
+</full-backup-content>

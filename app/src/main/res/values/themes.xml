@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- The actual Material 3 dynamic color scheme is built by Compose at
+         runtime; this AppCompat theme exists only so the launch window has a
+         sensible background before Compose takes over. -->
+    <style name="Theme.Avisazbee" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor" tools:targetApi="21">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+</resources>

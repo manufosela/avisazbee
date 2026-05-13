@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">avisazbee</string>
+    <string name="sign_in_title">avisazbee</string>
+    <string name="sign_in_subtitle">Recibe avisos del botón de quien tú decidas.</string>
+    <string name="sign_in_with_google">Continuar con Google</string>
+    <string name="sign_in_pending">Disponible al cablear Firebase Auth.</string>
+</resources>
