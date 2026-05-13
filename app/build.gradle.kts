@@ -101,6 +101,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // Security (bcrypt for button HTTP secrets)
+    implementation(libs.jbcrypt)
+
     // Tests
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

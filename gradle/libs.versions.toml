@@ -27,6 +27,9 @@ googleId = "1.1.1"
 # Coroutines
 coroutines = "1.9.0"
 
+# Security
+jbcrypt = "0.4"
+
 # Tests
 junit = "4.13.2"
 mockk = "1.13.13"
@@ -74,6 +77,9 @@ google-id = { group = "com.google.android.libraries.identity.googleid", name = "
 # Coroutines
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Security
+jbcrypt = { group = "org.mindrot", name = "jbcrypt", version.ref = "jbcrypt" }
 
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
