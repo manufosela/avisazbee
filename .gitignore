@@ -13,3 +13,8 @@ captures/
 *.aar
 google-services.json
 release/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+node_modules/
+.firebaserc
