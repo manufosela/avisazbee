@@ -2,6 +2,7 @@ package com.manufosela.avisazbee.features.channels.domain
 
 import com.manufosela.avisazbee.shared.RandomTokenGenerator
 import javax.inject.Inject
+import javax.inject.Named
 
 /**
  * Creates a brand-new channel owned by [ownerUid] and generates its initial
@@ -10,6 +11,7 @@ import javax.inject.Inject
  */
 class CreateChannelUseCase @Inject constructor(
     private val repository: ChannelRepository,
+    @Named("inviteCodeGenerator")
     private val inviteCodeGenerator: RandomTokenGenerator = RandomTokenGenerator.invite(),
 ) {
     suspend operator fun invoke(name: String, ownerUid: String): Channel {

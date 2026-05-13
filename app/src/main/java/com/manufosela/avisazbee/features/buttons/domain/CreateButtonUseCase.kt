@@ -5,6 +5,7 @@ import com.manufosela.avisazbee.features.channels.domain.ChannelRepository
 import com.manufosela.avisazbee.features.channels.domain.ChannelRole
 import com.manufosela.avisazbee.shared.RandomTokenGenerator
 import javax.inject.Inject
+import javax.inject.Named
 
 /**
  * Registers a Zigbee button against a channel.
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class CreateButtonUseCase @Inject constructor(
     private val buttons: ButtonRepository,
     private val channels: ChannelRepository,
+    @Named("secretGenerator")
     private val secretGenerator: RandomTokenGenerator = RandomTokenGenerator.secret(),
 ) {
     suspend operator fun invoke(
