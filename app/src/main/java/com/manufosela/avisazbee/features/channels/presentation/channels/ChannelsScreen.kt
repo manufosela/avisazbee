@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -54,6 +55,12 @@ fun ChannelsScreen(
                         Icon(
                             imageVector = Icons.Filled.NotificationsActive,
                             contentDescription = "Preferencias de notificación",
+                        )
+                    }
+                    androidx.compose.material3.IconButton(onClick = viewModel::signOut) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Cerrar sesión",
                         )
                     }
                 },
