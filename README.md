@@ -4,8 +4,9 @@ App Android para recibir avisos generados por botones Zigbee Sonoff
 SNZB-01P a través de Home Assistant y Firebase. Pulsar un botón dispara
 una alerta que llega a todas las personas asociadas al canal del botón.
 
-> Estado actual: **Fases 0, 1, 3, 4, 5 y 6 completadas**. Solo falta la
-> **Fase 2 (configuración de Firebase)** que es manual. Detalles abajo.
+> Estado actual: **Fases 0, 1, 3a-e, 4, 4b, 5, 6 y 7 completadas** (10 PRs
+> mergeados a `main`). Solo falta la **Fase 2 (configuración de Firebase)**,
+> que es manual y se describe abajo.
 
 ## Flujo
 
@@ -33,13 +34,14 @@ app/                              # Aplicación Android Kotlin/Compose
 │       ├── di/                   # FirebaseModule + DataModule + SharedModule (Hilt)
 │       ├── device/               # DeviceIdProvider + DeviceRegistrar
 │       ├── lifecycle/            # ActivityHolder para Credentials API
+│       ├── escalation/           # EscalationCoordinator + Work + TelephonyContactDialer
 │       └── firebase/
 │           ├── auth/             # FirebaseAuthRepository (Credentials API)
 │           └── fcm/              # AvisazbeeMessagingService + AlertNotificationHelper
 └── src/test/                     # JUnit + MockK del dominio
 functions/                        # Cloud Functions Node 20 ESM
-├── src/                          # createAlertFromHomeAssistant + alertLifecycle
-└── test/                         # Vitest (8/8 verde)
+├── src/                          # createAlertFromHomeAssistant + alertLifecycle + repushAlert + repushScheduler
+└── test/                         # Vitest (17/17 verde)
 home-assistant/                   # Ejemplo de automation.yaml para HA
 firestore.rules                   # Reglas de seguridad por colección
 firestore.indexes.json            # Índices compuestos
@@ -85,7 +87,25 @@ La Fase 2 es **configuración manual** de Firebase. Pasos:
    `alias(libs.plugins.googleServices)` y la alias en
    `gradle/libs.versions.toml`).
 
-6. **Desplegar Cloud Functions, reglas e índices** (requiere Firebase
+6. **Crear la cola de Cloud Tasks** para el reaviso automático
+   (Fase 4b). Una vez por proyecto:
+
+   ```bash
+   gcloud config set project YOUR_PROJECT_ID
+   gcloud tasks queues create avisazbee-repush --location=europe-west1
+   ```
+
+   Necesitas también una **service account** que las Cloud Functions
+   puedan usar para firmar las llamadas internas a `repushAlert`. La
+   SA por defecto de App Engine (`PROJECT-ID@appspot.gserviceaccount.com`)
+   suele bastar; defínela como variable de entorno al desplegar las
+   funciones:
+
+   ```bash
+   export AVISAZBEE_TASKS_SA="PROJECT-ID@appspot.gserviceaccount.com"
+   ```
+
+7. **Desplegar Cloud Functions, reglas e índices** (requiere Firebase
    CLI: `npm install -g firebase-tools && firebase login`):
 
    ```bash
@@ -96,10 +116,15 @@ La Fase 2 es **configuración manual** de Firebase. Pasos:
    firebase deploy --only functions
    ```
 
-7. **Configurar Home Assistant**: copia el contenido de
+8. **Configurar Home Assistant**: copia el contenido de
    `home-assistant/automation.yaml.example` adaptándolo a tu setup
    (IEEE MAC del SNZB-01P, secret que la app te enseña al alta, URL de
    la Cloud Function desplegada).
+
+9. **(Solo móvil de la persona dependiente)** Concede en Ajustes →
+   Apps → avisazbee: permisos de **Teléfono** (CALL_PHONE,
+   READ_PHONE_STATE) y **excepción de optimización de batería**. Sin
+   estos permisos el motor de escalada (Fase 7) hace no-op.
 
 ## Verificación de la app (sin Firebase)
 
