@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +35,7 @@ fun ChannelsScreen(
     onOpenChannel: (String) -> Unit = {},
     onCreateChannel: () -> Unit = {},
     onJoinChannel: () -> Unit = {},
+    onOpenPreferences: () -> Unit = {},
     viewModel: ChannelsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -46,6 +48,12 @@ fun ChannelsScreen(
                         Icon(
                             imageVector = Icons.Filled.GroupAdd,
                             contentDescription = "Unirse con código",
+                        )
+                    }
+                    androidx.compose.material3.IconButton(onClick = onOpenPreferences) {
+                        Icon(
+                            imageVector = Icons.Filled.NotificationsActive,
+                            contentDescription = "Preferencias de notificación",
                         )
                     }
                 },
