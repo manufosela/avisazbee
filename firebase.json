@@ -3,6 +3,23 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/alert",
+        "function": {
+          "functionId": "createAlertFromHomeAssistant",
+          "region": "europe-west1"
+        }
+      }
+    ]
+  },
   "functions": [
     {
       "source": "functions",
