@@ -105,8 +105,8 @@ La Fase 2 es **configuración manual** de Firebase. Pasos:
    export AVISAZBEE_TASKS_SA="PROJECT-ID@appspot.gserviceaccount.com"
    ```
 
-7. **Desplegar Cloud Functions, reglas e índices** (requiere Firebase
-   CLI: `npm install -g firebase-tools && firebase login`):
+7. **Desplegar Cloud Functions, reglas, índices y hosting** (requiere
+   Firebase CLI: `npm install -g firebase-tools && firebase login`):
 
    ```bash
    firebase use --add                       # selecciona el proyecto
@@ -114,17 +114,40 @@ La Fase 2 es **configuración manual** de Firebase. Pasos:
    firebase deploy --only firestore:rules
    firebase deploy --only firestore:indexes
    firebase deploy --only functions
+   firebase deploy --only hosting
    ```
 
-8. **Configurar Home Assistant**: copia el contenido de
-   `home-assistant/automation.yaml.example` adaptándolo a tu setup
-   (IEEE MAC del SNZB-01P, secret que la app te enseña al alta, URL de
-   la Cloud Function desplegada).
+8. **Subdominio propio delante de la Cloud Function** (opcional pero
+   recomendado para no exponer la URL `cloudfunctions.net`):
 
-9. **(Solo móvil de la persona dependiente)** Concede en Ajustes →
-   Apps → avisazbee: permisos de **Teléfono** (CALL_PHONE,
-   READ_PHONE_STATE) y **excepción de optimización de batería**. Sin
-   estos permisos el motor de escalada (Fase 7) hace no-op.
+   `firebase.json` ya tiene un `hosting` con el rewrite
+   `/alert → createAlertFromHomeAssistant` (region `europe-west1`).
+   Para asociar el subdominio:
+
+   1. Firebase Console → **Hosting** → *Agregar dominio personalizado*.
+   2. Escribe el subdominio, p.ej. `avisazbee.tudominio.com`.
+   3. Firebase te da un registro **TXT** de verificación → añádelo en
+      el DNS de tu dominio y espera a que verifique.
+   4. Firebase te da uno o dos registros **A** (y/o AAAA) → añádelos en
+      el DNS apuntando el subdominio a Firebase. Borra cualquier
+      A/CNAME previo de ese subdominio.
+   5. Espera a que el certificado SSL se provisione (de minutos a
+      ~24 h). Cuando esté, `https://avisazbee.tudominio.com/alert`
+      enruta a la función.
+
+   El `public/index.html` es solo una página neutra (noindex) para que
+   la raíz del subdominio no dé un 404 feo; no sirve ninguna web real.
+
+9. **Configurar Home Assistant**: copia el contenido de
+   `home-assistant/automation.yaml.example` poniendo tu subdominio
+   (`https://avisazbee.tudominio.com/alert`) — o, si no usas dominio
+   propio, la URL directa `...cloudfunctions.net/createAlertFromHomeAssistant`.
+   Sustituye también IEEE MAC y el secret que la app te enseña al alta.
+
+10. **(Solo móvil de la persona dependiente)** Concede en Ajustes →
+    Apps → avisazbee: permisos de **Teléfono** (CALL_PHONE,
+    READ_PHONE_STATE) y **excepción de optimización de batería**. Sin
+    estos permisos el motor de escalada (Fase 7) hace no-op.
 
 ## Verificación de la app (sin Firebase)
 

@@ -3,8 +3,11 @@
 # Copia estos snippets en tu configuration.yaml (o automations.yaml /
 # rest_commands.yaml según tu split) y sustituye:
 #
-#   YOUR_PROJECT_REGION    europe-west1 si has desplegado en Europa
-#   YOUR_PROJECT_ID        id del proyecto Firebase (lo ves en la consola)
+#   avisazbee.tudominio.com   subdominio que apuntaste a Firebase Hosting.
+#                              El rewrite /alert → createAlertFromHomeAssistant
+#                              está en firebase.json. Si NO usas dominio
+#                              propio, sustituye toda la URL por la directa:
+#                              https://europe-west1-TU-PROYECTO.cloudfunctions.net/createAlertFromHomeAssistant
 #   E4:56:AC:FF:FE:5E:CD:AA   IEEE MAC del botón Sonoff SNZB-01P registrado
 #                              en la app (Botones del canal → Nuevo botón)
 #   AVISAZBEE_BUTTON_KITCHEN  cualquier nombre de input/secret para guardar
@@ -18,7 +21,7 @@
 
 rest_command:
   avisazbee_kitchen_short_press:
-    url: "https://YOUR_PROJECT_REGION-YOUR_PROJECT_ID.cloudfunctions.net/createAlertFromHomeAssistant"
+    url: "https://avisazbee.tudominio.com/alert"
     method: POST
     content_type: "application/json"
     payload: >
